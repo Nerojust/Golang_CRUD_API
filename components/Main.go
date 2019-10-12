@@ -10,8 +10,8 @@ import (
 	"strconv"
 )
 
-//init books variable as a slice Book struct
-var books []models.Books
+//init totalBooksArraySlice variable as a slice Book struct
+var totalBooksArraySlice []models.Books
 
 func main() {
 	book1 := models.Books{
@@ -33,7 +33,7 @@ func main() {
 		Author: &models.Author{"Niche", "algae"},
 	}
 	//attach the slices
-	books = append(books, book1, book2, book3)
+	totalBooksArraySlice = append(totalBooksArraySlice, book1, book2, book3)
 
 	router := mux.NewRouter()
 	//route handler for endpoints
@@ -46,18 +46,18 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
-//get all books
+//get all totalBooksArraySlice
 func getBooks(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(books)
+	json.NewEncoder(writer).Encode(totalBooksArraySlice)
 }
 
 //get a single book
 func getBook(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 	parameterFromRequest := mux.Vars(request) //get the parameters
-	//loop through books and find the id
-	for _, singleBookItem := range books {
+	//loop through totalBooksArraySlice and find the id
+	for _, singleBookItem := range totalBooksArraySlice {
 		if singleBookItem.ID == parameterFromRequest["id"] {
 			//when u get it encode it to json
 			json.NewEncoder(writer).Encode(singleBookItem)
@@ -71,30 +71,43 @@ func getBook(writer http.ResponseWriter, request *http.Request) {
 //create a new book
 func createBook(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
-	var book models.Books
-	_ = json.NewDecoder(request.Body).Decode(&book)
-	book.ID = strconv.Itoa(rand.Intn(10000000)) // mock id
-	books = append(books, book)
-	json.NewEncoder(writer).Encode(book)
+	// a single newBookRequestFromClient model reference
+	var newBookRequestFromClient models.Books
+	//decode the incoming body and decode the new newBookRequestFromClient
+	_ = json.NewDecoder(request.Body).Decode(&newBookRequestFromClient)
+	//generate a new id for the new newBookRequestFromClient
+	newBookRequestFromClient.ID = strconv.Itoa(rand.Intn(10000000)) // mock id
+	//add the new one to the existing list
+	var lenght = len(totalBooksArraySlice)
+	totalBooksArraySlice = append(totalBooksArraySlice, newBookRequestFromClient)
+	var lenght1 = len(totalBooksArraySlice)
+	if lenght1 > lenght {
+		//encode and show the
+		json.NewEncoder(writer).Encode("Added Successfully")
+	}
+	//encode and show the
+	//json.NewEncoder(writer).Encode(newBookRequestFromClient)
+
 }
 
 //update a book
 func updateBook(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 	parameterFromRequest := mux.Vars(request) //get the parameters
-	for index, item := range books {
+	for index, item := range totalBooksArraySlice {
 		if item.ID == parameterFromRequest["id"] {
-			books = append(books[:index], books[index+1:]...)
+			totalBooksArraySlice = append(totalBooksArraySlice[:index], totalBooksArraySlice[index+1:]...)
 
 			var book models.Books
 			_ = json.NewDecoder(request.Body).Decode(&book)
 			book.ID = parameterFromRequest["id"]
-			books = append(books, book)
+			totalBooksArraySlice = append(totalBooksArraySlice, book)
 			json.NewEncoder(writer).Encode(book)
 			return
 		}
 	}
-	json.NewEncoder(writer).Encode(books)
+	json.NewEncoder(writer).Encode("Updated Successfully")
+	//json.NewEncoder(writer).Encode(totalBooksArraySlice)
 
 }
 
@@ -102,11 +115,12 @@ func updateBook(writer http.ResponseWriter, request *http.Request) {
 func deleteBook(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 	parameterFromRequest := mux.Vars(request) //get the parameters
-	for index, item := range books {
-		if item.ID == parameterFromRequest["id"] {
-			books = append(books[:index], books[index+1:]...)
+	for index, singleItem := range totalBooksArraySlice {
+		if singleItem.ID == parameterFromRequest["id"] {
+			totalBooksArraySlice = append(totalBooksArraySlice[:index], totalBooksArraySlice[index+1:]...)
 			break
 		}
 	}
-	json.NewEncoder(writer).Encode(books)
+	//json.NewEncoder(writer).Encode(totalBooksArraySlice)
+	json.NewEncoder(writer).Encode("deleted Successfully")
 }
