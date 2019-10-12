@@ -5,31 +5,32 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
+	"math/rand"
 	"net/http"
+	"strconv"
 )
 
 //init books variable as a slice Book struct
 var books []models.Books
 
 func main() {
-
 	book1 := models.Books{
 		ID:     "1",
-		Title:  "Swan princess",
-		ISBN:   "2389283",
-		Author: models.Author{"Gregory", "Franklin"},
+		Title:  "Good day",
+		ISBN:   "8594",
+		Author: &models.Author{"Burundi", "keep"},
 	}
 	book2 := models.Books{
 		ID:     "2",
-		Title:  "Love Boulevard",
-		ISBN:   "195048",
-		Author: models.Author{"Fred", "Hammond"},
+		Title:  "Chairman dey dere day",
+		ISBN:   "42494",
+		Author: &models.Author{"Shenigin", "Joshua"},
 	}
 	book3 := models.Books{
 		ID:     "3",
-		Title:  "Christmas Miracle",
-		ISBN:   "774893",
-		Author: models.Author{"Nerojust", "Greta"},
+		Title:  "Ikase multipurpose area",
+		ISBN:   "81135",
+		Author: &models.Author{"Niche", "algae"},
 	}
 	//attach the slices
 	books = append(books, book1, book2, book3)
@@ -70,14 +71,42 @@ func getBook(writer http.ResponseWriter, request *http.Request) {
 //create a new book
 func createBook(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
+	var book models.Books
+	_ = json.NewDecoder(request.Body).Decode(&book)
+	book.ID = strconv.Itoa(rand.Intn(10000000)) // mock id
+	books = append(books, book)
+	json.NewEncoder(writer).Encode(book)
 }
 
 //update a book
 func updateBook(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
+	parameterFromRequest := mux.Vars(request) //get the parameters
+	for index, item := range books {
+		if item.ID == parameterFromRequest["id"] {
+			books = append(books[:index], books[index+1:]...)
+
+			var book models.Books
+			_ = json.NewDecoder(request.Body).Decode(&book)
+			book.ID = parameterFromRequest["id"]
+			books = append(books, book)
+			json.NewEncoder(writer).Encode(book)
+			return
+		}
+	}
+	json.NewEncoder(writer).Encode(books)
+
 }
 
 //delete a book
 func deleteBook(writer http.ResponseWriter, request *http.Request) {
-
+	writer.Header().Set("Content-Type", "application/json")
+	parameterFromRequest := mux.Vars(request) //get the parameters
+	for index, item := range books {
+		if item.ID == parameterFromRequest["id"] {
+			books = append(books[:index], books[index+1:]...)
+			break
+		}
+	}
+	json.NewEncoder(writer).Encode(books)
 }
