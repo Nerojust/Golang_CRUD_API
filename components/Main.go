@@ -4,7 +4,6 @@ import (
 	"NewTest/models"
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -43,13 +42,23 @@ func main() {
 	router.HandleFunc("/api/books/{id}", updateBook).Methods("PUT")
 	router.HandleFunc("/api/books/{id}", deleteBook).Methods("DELETE")
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+	err := http.ListenAndServe(":8080", router)
+	if err != nil {
+		panic(err)
+	}
 }
 
 //get all totalBooksArraySlice
 func getBooks(writer http.ResponseWriter, request *http.Request) {
+	//model a new response plus the data slice
+	var bookRes = models.Response{
+		Message: models.SUCCESS,
+		Success: true,
+		Data:    totalBooksArraySlice,
+	}
 	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(totalBooksArraySlice)
+	//encode and return the full object response
+	json.NewEncoder(writer).Encode(bookRes)
 }
 
 //get a single book
@@ -78,16 +87,10 @@ func createBook(writer http.ResponseWriter, request *http.Request) {
 	//generate a new id for the new newBookRequestFromClient
 	newBookRequestFromClient.ID = strconv.Itoa(rand.Intn(10000000)) // mock id
 	//add the new one to the existing list
-	var lenght = len(totalBooksArraySlice)
 	totalBooksArraySlice = append(totalBooksArraySlice, newBookRequestFromClient)
-	var lenght1 = len(totalBooksArraySlice)
-	if lenght1 > lenght {
-		//encode and show the
-		json.NewEncoder(writer).Encode("Added Successfully")
-	}
 	//encode and show the
+	json.NewEncoder(writer).Encode("Added Successfully")
 	//json.NewEncoder(writer).Encode(newBookRequestFromClient)
-
 }
 
 //update a book
@@ -97,7 +100,6 @@ func updateBook(writer http.ResponseWriter, request *http.Request) {
 	for index, item := range totalBooksArraySlice {
 		if item.ID == parameterFromRequest["id"] {
 			totalBooksArraySlice = append(totalBooksArraySlice[:index], totalBooksArraySlice[index+1:]...)
-
 			var book models.Books
 			_ = json.NewDecoder(request.Body).Decode(&book)
 			book.ID = parameterFromRequest["id"]
@@ -108,7 +110,6 @@ func updateBook(writer http.ResponseWriter, request *http.Request) {
 	}
 	json.NewEncoder(writer).Encode("Updated Successfully")
 	//json.NewEncoder(writer).Encode(totalBooksArraySlice)
-
 }
 
 //delete a book
@@ -122,5 +123,5 @@ func deleteBook(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 	//json.NewEncoder(writer).Encode(totalBooksArraySlice)
-	json.NewEncoder(writer).Encode("deleted Successfully")
+	json.NewEncoder(writer).Encode("Deleted Successfully")
 }
